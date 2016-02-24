@@ -208,7 +208,7 @@ public class YexTool {
 
     private static void printHelp() {
         HelpFormatter helpFormatter = new HelpFormatter();
-        helpFormatter.printHelp("java -jar target/yex-tool-1.0.jar ", "Tool to test Yex integration \n",
+        helpFormatter.printHelp("java -jar target/yex-tool-1.0.0.jar ", "Tool to test Yex integration \n",
                 options, "", true);
     }
 
