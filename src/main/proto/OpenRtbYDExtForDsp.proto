@@ -1,0 +1,29 @@
+package com.google.openrtb.youdao;
+option java_outer_classname = "OpenRtbYDExtForDsp";
+
+import "openrtb.proto";
+
+extend NativeRequest.Asset.Data {
+	/**
+	* google openrtb NativeRequest.Asset.Data.type is enum, could not extended easily.
+	* using int dataAssetType instead.
+	* DSP will ignore NativeRequest.Asset.Data.type even request has to set it.
+	*/
+	optional int32 dataAssetType = 100;
+}
+
+extend BidRequest.Imp.Native {
+	/**
+	* google openrtb BidRequest.Imp.Native.battr is enum, could not extended easily.
+	* using battri to identify another battr
+	*/
+	repeated int32 battri = 100 [packed = true];
+}
+
+extend BidResponse.SeatBid.Bid {
+	/**
+	* google openrtb BidRequest.Imp.Native.battr is enum, could not extended easily.
+	* using battri to identify another battr
+	*/
+	repeated int32 attri = 100 [packed = true];
+}
