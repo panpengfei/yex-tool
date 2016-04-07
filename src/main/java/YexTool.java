@@ -70,6 +70,7 @@ public class YexTool {
 
         ByteArrayEntity entity = new ByteArrayEntity(bidRequest.toByteArray());
         post.setEntity(entity);
+        post.setHeader("Content-Type","application/x-protobuf");
 
         logger.info("Sending BidRequest to URL: " + dspServerAddress);
         HttpResponse response = httpclient.execute(post);
