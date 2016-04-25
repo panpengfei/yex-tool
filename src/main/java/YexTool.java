@@ -70,7 +70,7 @@ public class YexTool {
 
         ByteArrayEntity entity = new ByteArrayEntity(bidRequest.toByteArray());
         post.setEntity(entity);
-        post.setHeader("Content-Type","application/x-protobuf");
+        post.setHeader("Content-Type", "application/x-protobuf");
 
         logger.info("Sending BidRequest to URL: " + dspServerAddress);
         HttpResponse response = httpclient.execute(post);
@@ -101,26 +101,21 @@ public class YexTool {
      */
     private static OpenRtb.BidResponse electValidBidsInBidResponse(OpenRtb.BidRequest bidRequest, OpenRtb.BidResponse bidResponse) {
         List<String> impIds = new ArrayList<String>();
+        Map<String, OpenRtb.BidRequest.Imp> impId2Imps = new HashMap<String, OpenRtb.BidRequest.Imp>();
         Map<String, Double> impId2Bidfloors = new HashMap<String, Double>();
-        Map<String, List<Integer>> impId2AssetIds = new HashMap<String, List<Integer>>();
         Map<String, List<Integer>> impId2Battributes = new HashMap<String, List<Integer>>();
         for (OpenRtb.BidRequest.Imp imp : bidRequest.getImpList()) {
             impIds.add(imp.getId());
+            impId2Imps.put(imp.getId(), imp);
             impId2Bidfloors.put(imp.getId(), imp.getBidfloor());
             impId2Battributes.put(imp.getId(), imp.getNative().getExtension(OpenRtbYDExtForDsp.battri));
-
-            List<Integer> assetIds = new ArrayList<Integer>();
-            for (OpenRtb.NativeRequest.Asset asset : imp.getNative().getRequestNative().getAssetsList()) {
-                assetIds.add(asset.getId());
-            }
-            impId2AssetIds.put(imp.getId(), assetIds);
         }
 
         OpenRtb.BidResponse.Builder bidResponseBuilder = bidResponse.toBuilder().clearSeatbid();
         for (OpenRtb.BidResponse.SeatBid seatBid : bidResponse.getSeatbidList()) {
             OpenRtb.BidResponse.SeatBid.Builder validSeatBidBuilder = seatBid.toBuilder().clearBid();
             for (OpenRtb.BidResponse.SeatBid.Bid bid : seatBid.getBidList()) {
-                if (isBidValid(bid, impIds, impId2Bidfloors, impId2AssetIds, impId2Battributes)) {
+                if (isBidValid(bid, impIds, impId2Imps, impId2Bidfloors, impId2Battributes)) {
                     validSeatBidBuilder.addBid(bid.toBuilder());
                 }
             }
@@ -134,13 +129,14 @@ public class YexTool {
 
     private static boolean isBidValid(OpenRtb.BidResponse.SeatBid.Bid bid,
                                       List<String> impIds,
+                                      Map<String, OpenRtb.BidRequest.Imp> impId2Imps,
                                       Map<String, Double> impId2Bidfloors,
-                                      Map<String, List<Integer>> impId2AssetIds,
                                       Map<String, List<Integer>> impId2Battributes) {
-        return isValidImpId(bid, impIds) && isValidPrice(bid, impId2Bidfloors) && isValidAssets(bid, impId2AssetIds) && isValidAttrs(bid, impId2Battributes);
+        return isValidImpId(bid, impIds) && isValidPrice(bid, impId2Bidfloors) && isValidAssets(bid, impId2Imps) && isValidAttrs(bid, impId2Battributes);
     }
 
-    private static boolean isValidImpId(OpenRtb.BidResponse.SeatBid.Bid bid, List<String> impIds) {
+    private static boolean isValidImpId(OpenRtb.BidResponse.SeatBid.Bid bid,
+                                        List<String> impIds) {
         boolean valid = impIds.contains(bid.getImpid());
         if (!valid) {
             logger.warn("Imp id is invalid! Bid: \n" + bid);
@@ -148,7 +144,8 @@ public class YexTool {
         return valid;
     }
 
-    private static boolean isValidPrice(OpenRtb.BidResponse.SeatBid.Bid bid, Map<String, Double> impId2Bidfloors) {
+    private static boolean isValidPrice(OpenRtb.BidResponse.SeatBid.Bid bid,
+                                        Map<String, Double> impId2Bidfloors) {
         boolean valid = impId2Bidfloors.get(bid.getImpid()) <= bid.getPrice();
         if (!valid) {
             logger.warn("Price is under floor! Bid: \n" + bid);
@@ -156,26 +153,64 @@ public class YexTool {
         return valid;
     }
 
-    private static boolean isValidAssets(OpenRtb.BidResponse.SeatBid.Bid bid, Map<String, List<Integer>> impId2AssetIds) {
-        List<Integer> requestAssetIds = impId2AssetIds.get(bid.getImpid());
-        boolean valid = false;
-        if (requestAssetIds != null) {
-            List<Integer> bidAssetIds = new ArrayList<Integer>();
-            for (OpenRtb.NativeResponse.Asset asset : bid.getAdmNative().getAssetsList()) {
-                bidAssetIds.add(asset.getId());
-            }
-            Collections.sort(requestAssetIds);
-            Collections.sort(bidAssetIds);
+    private static boolean isValidAssets(OpenRtb.BidResponse.SeatBid.Bid bid,
+                                         Map<String, OpenRtb.BidRequest.Imp> impId2Imps) {
+        OpenRtb.BidRequest.Imp requestImp = impId2Imps.get(bid.getImpid());
+        if (requestImp == null) {
+            logger.warn("ImpId invalid! " + bid.getImpid() + " are not in required ImpIds: " + impId2Imps.keySet());
+            return false;
+        }
 
-            valid = requestAssetIds.equals(bidAssetIds);
+        List<OpenRtb.NativeRequest.Asset> requestAssets = requestImp.getNative().getRequestNative().getAssetsList();
+        if (requestAssets.isEmpty()) {
+            logger.warn("Empty asset for Imp: " + requestImp);
+            return false;
         }
+
+        List<Integer> requestAssetIds = new ArrayList<Integer>(requestAssets.size());
+        for (OpenRtb.NativeRequest.Asset asset : requestAssets) {
+            requestAssetIds.add(asset.getId());
+        }
+
+        List<Integer> bidAssetIds = new ArrayList<Integer>();
+        Map<Integer, OpenRtb.NativeResponse.Asset> bidAssetId2Asset = new HashMap<Integer, OpenRtb.NativeResponse.Asset>();
+        for (OpenRtb.NativeResponse.Asset asset : bid.getAdmNative().getAssetsList()) {
+            bidAssetIds.add(asset.getId());
+            bidAssetId2Asset.put(asset.getId(), asset);
+        }
+        Collections.sort(requestAssetIds);
+        Collections.sort(bidAssetIds);
+
+        boolean valid = requestAssetIds.equals(bidAssetIds);
         if (!valid) {
-            logger.warn("Asset ids are invalid! Bid: \n" + bid);
+            logger.debug("Bid's assetIds:" + bidAssetIds + " are not matched to required assets: " + requestAssetIds);
+            return false;
         }
-        return valid;
+
+        for (OpenRtb.NativeRequest.Asset requestAsset : requestAssets) {
+            OpenRtb.NativeResponse.Asset bidAsset = bidAssetId2Asset.get(requestAsset.getId());
+            if (requestAsset.hasTitle()) {
+                valid = bidAsset.hasTitle() && bidAsset.getTitle().getText().length() <= requestAsset.getTitle().getLen();
+            } else if (requestAsset.hasImg()) {
+                valid = bidAsset.hasImg() && bidAsset.getImg().getW() == requestAsset.getImg().getW() && bidAsset.getImg().getH() == requestAsset.getImg().getH();
+            } else if (requestAsset.hasData()) {
+                valid = bidAsset.hasData();
+            } else {
+                //TODO: Video
+                valid = false;
+            }
+
+            if (!valid) {
+                logger.warn("Bid's asset: " + bidAsset + " are not matched to required asset: " + requestAsset);
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    private static boolean isValidAttrs(OpenRtb.BidResponse.SeatBid.Bid bid, Map<String, List<Integer>> impId2Battributes) {
+    private static boolean isValidAttrs(OpenRtb.BidResponse.SeatBid.Bid bid,
+                                        Map<String, List<Integer>> impId2Battributes) {
         List<Integer> battris = impId2Battributes.get(bid.getImpid());
         List<Integer> attris = new ArrayList<Integer>(bid.getExtension(OpenRtbYDExtForDsp.attri));
         boolean attrisIsEmpty = attris.isEmpty();
