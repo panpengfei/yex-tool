@@ -11,11 +11,16 @@ mvn clean package
 
 ## Usage
 <pre>
-usage: java -jar target/yex-tool-1.0.0.jar  -f &lt;input file&gt; [-h] -s &lt;server
-       address&gt;
+usage: java -jar target/yex-tool-1.0.0.jar  -f &lt;input file&gt; [-h] [-jo |
+       -js | -pb]   -s &lt;server address&gt;
 Tool to test Yex integration
  -f &lt;input file&gt;       input file
  -h,--help             display help message
+ -jo                   json format, and NativeRequest/NativeResponse json
+                       object format
+ -js                   json format, and NativeRequest/NativeResponse json
+                       string format
+ -pb                   protocol buffers format, as default value
  -s &lt;server address&gt;   server address
 </pre>
 <!---->
