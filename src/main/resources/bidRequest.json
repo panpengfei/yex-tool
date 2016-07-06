@@ -1,8 +1,8 @@
 {
-  "id": "80ce30c53c16e6ede735f123ef6e32361bfc7b22",
+  "id": "bidRequestId",
   "imp": [
     {
-      "id": "1",
+      "id": "impId",
       "bidfloor": 0,
       "native": {
         "request": "{\"native\":{\"plcmtcnt\":2,\"assets\":[{\"id\":0,\"title\":{\"len\":10}},{\"id\":1,\"img\":{\"w\":100,\"h\":100}},{\"id\":2,\"img\":{\"w\":300,\"h\":250}}]}}",

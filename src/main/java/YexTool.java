@@ -8,11 +8,13 @@
 import com.google.openrtb.OpenRtb;
 import com.google.openrtb.json.OpenRtbJsonFactory;
 import com.google.openrtb.json.OpenRtbJsonReader;
+import com.google.openrtb.youdao.*;
 import com.google.protobuf.ExtensionRegistry;
 import org.apache.commons.cli.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
@@ -22,8 +24,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 
-import com.google.openrtb.youdao.*;
-
 /**
  * @author panpengfei.
  * @version 1.0.0
@@ -31,6 +31,10 @@ import com.google.openrtb.youdao.*;
 public class YexTool {
 
     private static Logger logger = Logger.getLogger(YexTool.class.getName());
+    private static final String BATTRI_FIELD_NAME = "battri";
+    private static final String DATA_ASSET_TYPE_FIELD_NAME = "dataAssetType";
+
+
     private static Option helpOption = new Option("h", "help", false,
             "display help message");
     private static Option serverAddressOption = Option.builder("s")
@@ -45,32 +49,66 @@ public class YexTool {
             .desc("input file")
             .required()
             .build();
+    private static OptionGroup dataFormatOptionGroup = new OptionGroup()
+            .addOption(Option.builder("pb")
+                    .hasArg(false)
+                    .desc("protocol buffers format, as default value")
+                    .build())
+            .addOption(Option.builder("js")
+                    .hasArg(false)
+                    .desc("json format, and NativeRequest/NativeResponse json string format")
+                    .build())
+            .addOption(Option.builder("jo")
+                    .hasArg(false)
+                    .desc("json format, and NativeRequest/NativeResponse json object format")
+                    .build());
     private static final Options options = new Options()
             .addOption(helpOption)
             .addOption(inputFileOption)
-            .addOption(serverAddressOption);
+            .addOption(serverAddressOption)
+            .addOptionGroup(dataFormatOptionGroup);
     private static ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
 
     static {
         OpenRtbYDExtForDsp.registerAllExtensions(extensionRegistry);
     }
 
+    private static OpenRtbJsonFactory openRtbJsonFactory = OpenRtbJsonFactory.create()
+            .register(new YDExtBattriReader(), OpenRtb.BidRequest.Imp.Native.Builder.class)
+            .register(new YDExtBattriWriter(), Integer.class, OpenRtb.BidRequest.Imp.Native.class, BATTRI_FIELD_NAME)
+            .register(new YDExtDataAssetTypeWriter(), Integer.class, OpenRtb.NativeRequest.Asset.Data.class, DATA_ASSET_TYPE_FIELD_NAME)
+            .register(new YDExtAttriReader(), OpenRtb.BidResponse.SeatBid.Bid.Builder.class);
+
+    private static YexOpenRtbJsonFactory yexOpenRtbJsonFactory = YexOpenRtbJsonFactory.create()
+            .yexRegister(new YDExtBattriReader(), OpenRtb.BidRequest.Imp.Native.Builder.class)
+            .yexRegister(new YDExtBattriWriter(), Integer.class, OpenRtb.BidRequest.Imp.Native.class, BATTRI_FIELD_NAME)
+            .yexRegister(new YDExtDataAssetTypeWriter(), Integer.class, OpenRtb.NativeRequest.Asset.Data.class, DATA_ASSET_TYPE_FIELD_NAME)
+            .yexRegister(new YDExtAttriReader(), OpenRtb.BidResponse.SeatBid.Bid.Builder.class);
+
     private static OpenRtb.BidRequest buildBidRequestFromFile(String path) throws IOException {
         Reader fileReader = new FileReader(path);
-        OpenRtbJsonFactory openRtbJsonFactory = OpenRtbJsonFactory.create()
-                .register(new YDExtReader(), OpenRtb.BidRequest.Imp.Native.Builder.class);
         OpenRtbJsonReader reader = openRtbJsonFactory.newReader();
         return reader.readBidRequest(fileReader);
     }
 
 
-    private static OpenRtb.BidResponse sendBidRequest(String dspServerAddress, OpenRtb.BidRequest bidRequest) throws Exception {
+    private static OpenRtb.BidResponse sendBidRequest(String dspServerAddress, OpenRtb.BidRequest bidRequest, String dataFormat) throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpPost post = new HttpPost(dspServerAddress);
-
-        ByteArrayEntity entity = new ByteArrayEntity(bidRequest.toByteArray());
-        post.setEntity(entity);
-        post.setHeader("Content-Type", "application/x-protobuf");
+        switch (dataFormat) {
+            case "pb":
+                post.setEntity(new ByteArrayEntity(bidRequest.toByteArray()));
+                post.setHeader("Content-Type", "application/x-protobuf");
+                break;
+            case "js":
+                post.setEntity(new StringEntity(openRtbJsonFactory.newWriter().writeBidRequest(bidRequest)));
+                post.setHeader("Content-Type", "application/json");
+                break;
+            case "jo":
+                post.setEntity(new StringEntity(yexOpenRtbJsonFactory.newWriter().writeBidRequest(bidRequest)));
+                post.setHeader("Content-Type", "application/json");
+                break;
+        }
 
         logger.info("Sending BidRequest to URL: " + dspServerAddress);
         HttpResponse response = httpclient.execute(post);
@@ -78,7 +116,29 @@ public class YexTool {
         OpenRtb.BidResponse bidResponse = null;
         if (response.getStatusLine().getStatusCode() == 200) {
             try {
-                bidResponse = OpenRtb.BidResponse.parseFrom(response.getEntity().getContent(), extensionRegistry);
+                switch (dataFormat) {
+                    case "pb":
+                        bidResponse = OpenRtb.BidResponse.parseFrom(response.getEntity().getContent(), extensionRegistry);
+                        break;
+                    case "js":
+                        bidResponse = openRtbJsonFactory.newReader().readBidResponse(response.getEntity().getContent());
+                        OpenRtb.BidResponse.Builder bidResponseBuilder = bidResponse.toBuilder().clearSeatbid();
+                        for (OpenRtb.BidResponse.SeatBid seatBid : bidResponse.getSeatbidList()) {
+                            OpenRtb.BidResponse.SeatBid.Builder seatBidBuilder = seatBid.toBuilder().clearBid();
+                            for (OpenRtb.BidResponse.SeatBid.Bid bid : seatBid.getBidList()) {
+                                seatBidBuilder.addBid(
+                                        bid.toBuilder()
+                                                .clearAdm()
+                                                .setAdmNative(openRtbJsonFactory.newNativeReader().readNativeResponse(bid.getAdm())));
+                            }
+                            bidResponseBuilder.addSeatbid(seatBidBuilder);
+                        }
+                        bidResponse = bidResponseBuilder.build();
+                        break;
+                    case "jo":
+                        bidResponse = yexOpenRtbJsonFactory.newReader().readBidResponse(response.getEntity().getContent());
+                        break;
+                }
             } catch (Exception e) {
                 throw new Exception("Error while parse HttpResponse to BidResponse!", e);
             }
@@ -183,7 +243,7 @@ public class YexTool {
 
         boolean valid = requestAssetIds.equals(bidAssetIds);
         if (!valid) {
-            logger.debug("Bid's assetIds:" + bidAssetIds + " are not matched to required assets: " + requestAssetIds);
+            logger.warn("Bid's assetIds:" + bidAssetIds + " are not matched to required assets: " + requestAssetIds);
             return false;
         }
 
@@ -237,7 +297,12 @@ public class YexTool {
         String bidServer = commandLine.getOptionValue(serverAddressOption.getOpt());
         logger.info("Using bid server: " + bidServer);
 
-        OpenRtb.BidResponse bidResponse = sendBidRequest(bidServer, bidRequest);
+        String dataFormat = dataFormatOptionGroup.getSelected();
+        // by default, data formatted by PB
+        if (dataFormat == null) dataFormat = "pb";
+        logger.info("dataFormat: " + dataFormat);
+
+        OpenRtb.BidResponse bidResponse = sendBidRequest(bidServer, bidRequest, dataFormat);
         logger.info("Bid response: \n" + bidResponse);
     }
 

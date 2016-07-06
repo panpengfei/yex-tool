@@ -1,5 +1,5 @@
 /**
- * @(#)YDExtReader, 16/2/22.
+ * @(#)YDExtBattriReader, 16/2/22.
  * <p/>
  * Copyright 2016 Yodao, Inc. All rights reserved.
  * YODAO PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,8 +22,8 @@ import com.google.openrtb.youdao.*;
  * @author panpengfei.
  * @version 1.0.0
  */
-public class YDExtReader extends OpenRtbJsonExtReader<OpenRtb.BidRequest.Imp.Native.Builder> {
-    private static Logger logger = Logger.getLogger(YDExtReader.class.getName());
+public class YDExtBattriReader extends OpenRtbJsonExtReader<OpenRtb.BidRequest.Imp.Native.Builder> {
+    private static Logger logger = Logger.getLogger(YDExtBattriReader.class.getName());
     private static final String BATTRI_FIELD_NAME = "battri";
 
     @Override
