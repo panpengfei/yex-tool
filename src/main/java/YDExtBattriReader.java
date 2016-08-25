@@ -24,11 +24,10 @@ import com.google.openrtb.youdao.*;
  */
 public class YDExtBattriReader extends OpenRtbJsonExtReader<OpenRtb.BidRequest.Imp.Native.Builder> {
     private static Logger logger = Logger.getLogger(YDExtBattriReader.class.getName());
-    private static final String BATTRI_FIELD_NAME = "battri";
 
     @Override
     protected void read(OpenRtb.BidRequest.Imp.Native.Builder message, JsonParser par) throws IOException {
-        if (BATTRI_FIELD_NAME.equals(getCurrentName(par))) {
+        if (Constants.EXTEND_BATTRI_FIELD_NAME.equals(getCurrentName(par))) {
             List<Integer> battris = new ArrayList<Integer>();
             for (startArray(par); endArray(par); par.nextToken()) {
                 try {

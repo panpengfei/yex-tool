@@ -3,14 +3,16 @@
   "imp": [
     {
       "id": "impId",
-      "bidfloor": 0,
       "native": {
-        "request": "{\"native\":{\"plcmtcnt\":2,\"assets\":[{\"id\":0,\"title\":{\"len\":10}},{\"id\":1,\"img\":{\"w\":100,\"h\":100}},{\"id\":2,\"img\":{\"w\":300,\"h\":250}}]}}",
+        "request": "{\"native\":{\"assets\":[{\"id\":0,\"title\":{\"len\":10},\"ext\":{\"sasset\":{\"id\":0,\"required\":1,\"data\":{\"type\":2,\"ext\":{\"dataAssetType\":1}}}}}]}}",
         "ext": {
           "battri": [
             100
           ]
         }
+      },
+      "ext": {
+        "ssid": 0
       }
     }
   ]

@@ -16,10 +16,8 @@ import java.io.IOException;
  */
 public class YDExtDataAssetTypeWriter extends OpenRtbJsonExtWriter<Integer> {
 
-    private static final String DATA_ASSET_TYPE_FIELD_NAME = "dataAssetType";
-
     @Override
     protected void write(Integer ext, JsonGenerator gen) throws IOException {
-        gen.writeNumberField(DATA_ASSET_TYPE_FIELD_NAME, ext);
+        gen.writeNumberField(Constants.EXTEND_DATA_ASSET_TYPE_FIELD_NAME, ext);
     }
 }
