@@ -1,5 +1,5 @@
 /**
- * @(#)YDExtBattriWriter, 16/6/16.
+ * @(#)YDExtStandardSchemaIdWriter, 16/8/16.
  * <p/>
  * Copyright 2016 Yodao, Inc. All rights reserved.
  * YODAO PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,14 +14,10 @@ import java.io.IOException;
  * @author panpengfei.
  * @version 1.0.0
  */
-public class YDExtBattriWriter extends OpenRtbJsonExtWriter<Integer> {
-
-    public YDExtBattriWriter() {
-        super(Constants.EXTEND_BATTRI_FIELD_NAME, false);
-    }
+public class YDExtStandardSchemaIdWriter extends OpenRtbJsonExtWriter<Integer> {
 
     @Override
     protected void write(Integer ext, JsonGenerator gen) throws IOException {
-        gen.writeNumber(ext);
+        gen.writeNumberField(Constants.EXTEND_STANDARD_SCHEMA_ID_FIELD_NAME, ext);
     }
 }

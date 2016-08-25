@@ -24,21 +24,20 @@ import com.google.openrtb.youdao.*;
  */
 public class YDExtAttriReader extends OpenRtbJsonExtReader<OpenRtb.BidResponse.SeatBid.Bid.Builder> {
     private static Logger logger = Logger.getLogger(YDExtAttriReader.class.getName());
-    private static final String ATTRI_FIELD_NAME = "attri";
 
     @Override
     protected void read(OpenRtb.BidResponse.SeatBid.Bid.Builder message, JsonParser par) throws IOException {
-        if (ATTRI_FIELD_NAME.equals(getCurrentName(par))) {
-            List<Integer> battris = new ArrayList<>();
+        if (Constants.EXTEND_ATTRI_FIELD_NAME.equals(getCurrentName(par))) {
+            List<Integer> attris = new ArrayList<>();
             for (startArray(par); endArray(par); par.nextToken())
                 try {
                     int battri = Integer.parseInt(par.getText());
-                    battris.add(battri);
+                    attris.add(battri);
                 } catch (Exception e) {
                     logger.warn("attri is not a int value.", e);
                 }
-            if (battris.isEmpty()) return;
-            message.setExtension(OpenRtbYDExtForDsp.attri, battris);
+            if (attris.isEmpty()) return;
+            message.setExtension(OpenRtbYDExtForDsp.attri, attris);
         }
     }
 }
