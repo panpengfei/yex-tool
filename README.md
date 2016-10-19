@@ -5,9 +5,11 @@ Tool to test Yex integration
 You need: JDK 8, Protocol buffers (protoc) 2.6.1, Maven. Building is supported from the command line with Maven and from any IDE that can load Maven projects.
 
 ## Build From Source
-git clone git@github.com:panpengfei/YexTool.git  
-cd YexTool  
-mvn clean package  
+1. git clone git@github.com:panpengfei/YexTool.git  
+1. cd YexTool  
+1. vim pom.xml 
+   * update protoc config(/usr/local/bin/protoc) to your own protoc install directory
+1. mvn clean package
 
 ## Usage
 <pre>
