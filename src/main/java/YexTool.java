@@ -145,7 +145,7 @@ public class YexTool {
                         break;
                 }
             } catch (Exception e) {
-                throw new Exception("Error while parse HttpResponse to BidResponse!", e);
+                logger.error("Error while parse HttpResponse to BidResponse!", e);
             }
             bidResponse = electValidBidsInBidResponse(bidRequest, bidResponse);
         } else {

@@ -1,19 +1,42 @@
 {
-  "id": "bidRequestId",
+  "id": "cc83ecfe-8f7f-4e41-af4b-b3cbdb6a7e69",
   "imp": [
     {
-      "id": "impId",
+      "id": "1",
       "native": {
-        "request": "{\"native\":{\"assets\":[{\"id\":0,\"title\":{\"len\":10},\"ext\":{\"sasset\":{\"id\":0,\"required\":1,\"data\":{\"type\":2,\"ext\":{\"dataAssetType\":1}}}}}]}}",
+        "request": "{\"native\":{\"plcmtcnt\":1,\"assets\":[{\"id\":1,\"required\":1,\"title\":{\"len\":10},\"ext\":{\"sasset\":{\"id\":1,\"title\":{\"len\":9}}}},{\"id\":2,\"required\":1,\"img\":{\"w\":267,\"h\":200},\"ext\":{\"sasset\":{\"id\":2,\"img\":{\"w\":260,\"h\":200}}}},{\"id\":3,\"required\":1,\"data\":{\"type\":2,\"len\":15,\"ext\":{\"dataAssetType\":3}},\"ext\":{\"sasset\":{\"id\":3,\"data\":{\"type\":2,\"len\":12,\"ext\":{\"dataAssetType\":3}}}}}]}}",
         "ext": {
           "battri": [
             100
           ]
         }
       },
+      "tagid": "de6891237e77eee774ca731bbba233aa",
+      "bidfloor": 100,
+      "bidfloorcur": "CNY",
       "ext": {
-        "ssid": 0
+        "ssid": 3
       }
     }
-  ]
+  ],
+  "app": {
+    "id": "1",
+    "name": "test-app",
+    "bundle": "com.youdao.test.app"
+  },
+  "device": {
+    "geo": {
+      "lat": 0,
+      "lon": 0
+    },
+    "dnt": 0,
+    "ip": "114.83.237.156",
+    "os": "ANDROID",
+    "connectiontype": 2,
+    "didmd5": "1ed1325a55bab1faf02dfa58cdd104fa",
+    "dpidmd5": "6df7489bec12123ee42aeb0d68088867"
+  },
+  "test": 0,
+  "at": 2,
+  "tmax": 200
 }
