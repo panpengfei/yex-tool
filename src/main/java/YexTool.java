@@ -19,6 +19,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -101,11 +102,15 @@ public class YexTool {
                 post.setHeader("Content-Type", "application/x-protobuf");
                 break;
             case "js":
-                post.setEntity(new StringEntity(openRtbJsonFactory.newWriter().writeBidRequest(bidRequest)));
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                openRtbJsonFactory.newWriter().writeBidRequest(bidRequest, os);
+                post.setEntity(new ByteArrayEntity(os.toByteArray()));
                 post.setHeader("Content-Type", "application/json");
                 break;
             case "jo":
-                post.setEntity(new StringEntity(yexOpenRtbJsonFactory.newWriter().writeBidRequest(bidRequest)));
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                yexOpenRtbJsonFactory.newWriter().writeBidRequest(bidRequest, os);
+                post.setEntity(new ByteArrayEntity(os.toByteArray()));
                 post.setHeader("Content-Type", "application/json");
                 break;
         }
@@ -250,9 +255,9 @@ public class YexTool {
         for (OpenRtb.NativeRequest.Asset requestAsset : requestAssets) {
             OpenRtb.NativeResponse.Asset bidAsset = bidAssetId2Asset.get(requestAsset.getId());
             if (requestAsset.hasTitle()) {
-                valid = bidAsset.hasTitle() && bidAsset.getTitle().getText().length() <= requestAsset.getTitle().getLen();
+                valid = bidAsset.hasTitle(); //&& bidAsset.getTitle().getText().length() <= requestAsset.getTitle().getLen();
             } else if (requestAsset.hasImg()) {
-                valid = bidAsset.hasImg() && bidAsset.getImg().getW() == requestAsset.getImg().getW() && bidAsset.getImg().getH() == requestAsset.getImg().getH();
+                valid = bidAsset.hasImg(); //&& bidAsset.getImg().getW() == requestAsset.getImg().getW() && bidAsset.getImg().getH() == requestAsset.getImg().getH();
             } else if (requestAsset.hasData()) {
                 valid = bidAsset.hasData();
             } else {
