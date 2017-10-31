@@ -107,15 +107,15 @@ public class YexTool {
                 post.setHeader("Content-Type", "application/x-protobuf");
                 break;
             case "js":
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                openRtbJsonFactory.newWriter().writeBidRequest(bidRequest, os);
-                post.setEntity(new ByteArrayEntity(os.toByteArray()));
+                ByteArrayOutputStream jsonStringByteArrayOutputStream = new ByteArrayOutputStream();
+                openRtbJsonFactory.newWriter().writeBidRequest(bidRequest, jsonStringByteArrayOutputStream);
+                post.setEntity(new ByteArrayEntity(jsonStringByteArrayOutputStream.toByteArray()));
                 post.setHeader("Content-Type", "application/json");
                 break;
             case "jo":
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                yexOpenRtbJsonFactory.newWriter().writeBidRequest(bidRequest, os);
-                post.setEntity(new ByteArrayEntity(os.toByteArray()));
+                ByteArrayOutputStream jsonObjectByteArrayOutputStream = new ByteArrayOutputStream();
+                yexOpenRtbJsonFactory.newWriter().writeBidRequest(bidRequest, jsonObjectByteArrayOutputStream);
+                post.setEntity(new ByteArrayEntity(jsonObjectByteArrayOutputStream.toByteArray()));
                 post.setHeader("Content-Type", "application/json");
                 break;
         }
