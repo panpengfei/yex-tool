@@ -8,13 +8,12 @@
 import com.google.openrtb.OpenRtb;
 import com.google.openrtb.json.OpenRtbJsonFactory;
 import com.google.openrtb.json.OpenRtbJsonReader;
-import com.google.openrtb.youdao.*;
+import com.google.openrtb.youdao.OpenRtbYDExtForDsp;
 import com.google.protobuf.ExtensionRegistry;
 import org.apache.commons.cli.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
@@ -36,30 +35,21 @@ public class YexTool {
     private static Option helpOption = new Option("h", "help", false,
             "display help message");
     private static Option serverAddressOption = Option.builder("s")
-            .hasArgs()
+            .hasArg()
             .argName("server address")
             .desc("server address")
             .required()
             .build();
     private static Option inputFileOption = Option.builder("f")
-            .hasArgs()
+            .hasArg()
             .argName("input file")
             .desc("input file")
             .required()
             .build();
     private static OptionGroup dataFormatOptionGroup = new OptionGroup()
-            .addOption(Option.builder("pb")
-                    .hasArg(false)
-                    .desc("protocol buffers format, as default value")
-                    .build())
-            .addOption(Option.builder("js")
-                    .hasArg(false)
-                    .desc("json format, and NativeRequest/NativeResponse json string format")
-                    .build())
-            .addOption(Option.builder("jo")
-                    .hasArg(false)
-                    .desc("json format, and NativeRequest/NativeResponse json object format")
-                    .build());
+            .addOption(new Option("pb", "protocol buffers format, as default value"))
+            .addOption(new Option("js", "json format, and NativeRequest/NativeResponse json string format"))
+            .addOption(new Option("jo", "json format, and NativeRequest/NativeResponse json object format"));
     private static final Options options = new Options()
             .addOption(helpOption)
             .addOption(inputFileOption)

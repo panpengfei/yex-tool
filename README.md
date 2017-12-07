@@ -13,8 +13,9 @@ You need: JDK 8, Protocol buffers (protoc) 2.6.1, Maven. Building is supported f
 
 ## Usage
 <pre>
-usage: java -jar target/yex-tool-1.0.0.jar  [-jo |
-       -js | -pb] -f &lt;input file&gt; [-h]  -s &lt;server address&gt;
+usage: java -jar target/yex-tool-1.0.0.jar  -f &lt;input file&lt; [-h] [-jo |
+       -js | -pb]   -s &lt;server address&lt;
+
 Tool to test Yex integration
  -f &lt;input file&gt;       input file
  -h,--help             display help message
@@ -25,4 +26,3 @@ Tool to test Yex integration
  -pb                   protocol buffers format, as default value
  -s &lt;server address&gt;   server address
 </pre>
-<!---->
